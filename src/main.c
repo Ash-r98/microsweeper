@@ -37,7 +37,7 @@ struct board_struct {
 void render_board(struct board_struct *board,WINDOW *win);
 void generate_mines(struct board_struct *board,int count,int origin_x, int origin_y);
 int get_action_position(struct board_struct *board,WINDOW *board_window,int *action_x,int *action_y);
-void place_flag(struct board_struct *board,int x,int y);
+int place_flag(struct board_struct *board,int x,int y);
 int is_mine(struct board_struct *board,int x,int y);
 int reveal_square(struct board_struct *board,int x,int y);
 int check_if_won(struct board_struct *board);
@@ -95,6 +95,7 @@ int main(int argc, char **argv){
 	if (mine_count == -1){
 		mine_count = height*width*0.1;
 	}
+	int mines_left = mine_count;
 
 	printf("Your seed: %d\n",random_seed);
 	srandom(random_seed);
@@ -138,9 +139,16 @@ int main(int argc, char **argv){
 	int started = 0; //has the player dug their first square
 	int mine_hit = 0;
 	for (int action = ACTION_NULL; action != ACTION_QUIT;){
+		//print mines left
+		mvprintw(centre_y-(height/2)-2,centre_x-(width/2)-1,"mines: %d     \n",mines_left);
+		refresh();
+		wmove(board_window,action_y+1,action_x+1);
+		wrefresh(board_window);
+		//render board
 		render_board(board,board_window);
 		//====== exit if a mine was hit ======
 		if (mine_hit){
+			move(0,0);
 			printw(DEATH_MESSAGE);
 			refresh();
 			getch();
@@ -149,6 +157,7 @@ int main(int argc, char **argv){
 
 		//====== exit if the player has won ======
 		if (check_if_won(board)){
+			move(0,0);
 			printw(WIN_MESSAGE);
 			refresh();
 			getch();
@@ -167,7 +176,7 @@ int main(int argc, char **argv){
 			mine_hit = reveal_square(board,action_x,action_y);
 		}
 		if ((action == ACTION_FLAG) && started){ //dont let them flag if they havent started
-			place_flag(board,action_x,action_y);
+			mines_left += place_flag(board,action_x,action_y);
 		}
 	}
 
@@ -266,13 +275,16 @@ int get_action_position(struct board_struct *board,WINDOW *board_window,int *act
 		*action_y = current_y;
 	}
 }
-void place_flag(struct board_struct *board,int x,int y){
+int place_flag(struct board_struct *board,int x,int y){
 	char **squares = board->squares;
 	if (squares[x][y] == 'P'){ //flag already there
 		squares[x][y] = '\0';
+		return 1;
 	} else if (squares[x][y] == '\0'){ //not dug up and no flag
 		squares[x][y] = 'P';
+		return -1;
 	}
+	return 0;
 }
 int reveal_square(struct board_struct *board,int x,int y){//recursive floodfill to reveal squares untill numbers are revealed
 	//====== do nothing if square is already revealed ======
