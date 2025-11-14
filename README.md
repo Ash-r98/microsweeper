@@ -16,10 +16,6 @@ This was just a game I thought I would make to use, as a couldn't find a good no
 
 pretty simple. use 'e' to place a flag ('P' symbol). use `<enter>` to dig.
 
-## Current issues
+## the truth.
 
-I am currently working on these issues
-
- - doesnt show mines after failure
- - doesnt colour any of the numbers making it harder to see
-
+bro called it microsweeper from personal experience
